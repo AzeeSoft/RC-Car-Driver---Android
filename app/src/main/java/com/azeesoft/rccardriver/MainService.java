@@ -136,6 +136,17 @@ public class MainService extends Service {
                         bluetoothMaster.connectToRCCar();
                     }
                 }
+                if(jsonObject.has(CommConstants.RESPONSE_NAME_DISCONNECT_FROM_RC_CAR)){
+                    if(bluetoothMaster!=null){
+                        bluetoothMaster.closeAllConnections();
+                    }
+                }
+                if(jsonObject.has(CommConstants.RESPONSE_NAME_RESET_WIFI_CONNECTIONS)){
+                    resetAllWifiConnections();
+                }
+                if(jsonObject.has(CommConstants.RESPONSE_NAME_START_WIFI_SERVER)){
+                    startWifiServer();
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

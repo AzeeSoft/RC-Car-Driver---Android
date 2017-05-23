@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.azeesoft.rccardriver.tools.screen.ScreenManager;
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -112,6 +114,15 @@ public class MainActivity extends AppCompatActivity {
     public void screenOff(View v) {
         Log.d("Screen", "Turning off...");
         ScreenManager.turnScreenOff(this);
+    }
+
+    public void showHideSettings(View v){
+        ScrollView settingsScrollView = (ScrollView) findViewById(R.id.settingsScrollView);
+        if(settingsScrollView.getVisibility()!=View.GONE) {
+            settingsScrollView.setVisibility(View.GONE);
+        }else{
+            settingsScrollView.setVisibility(View.VISIBLE);
+        }
     }
 
     public void sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS param){

@@ -82,7 +82,7 @@ public class RCBluetoothMaster {
         }
     }
 
-    void closeAllConnections(){
+    public void closeAllConnections(){
         try {
             if(bReader!=null)
                 bReader.close();

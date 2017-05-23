@@ -31,5 +31,8 @@ public class CommConstants {
 
     public final static String RESPONSE_NAME_ARDUINO_BLUETOOTH_DATA = "arduino_bluetooth_data";
     public final static String RESPONSE_NAME_CONNECT_TO_RC_CAR = "connect_to_rc_car";
+    public final static String RESPONSE_NAME_DISCONNECT_FROM_RC_CAR = "disconnect_from_rc_car";
+    public final static String RESPONSE_NAME_RESET_WIFI_CONNECTIONS = "reset_wifi_connections";
+    public final static String RESPONSE_NAME_START_WIFI_SERVER = "start_wifi_server";
 
 }
