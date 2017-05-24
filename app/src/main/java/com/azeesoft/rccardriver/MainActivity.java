@@ -8,18 +8,30 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.net.rtp.RtpStream;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
+import net.majorkernelpanic.streaming.Session;
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.audio.AudioQuality;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
+import net.majorkernelpanic.streaming.rtsp.RtspServer;
+import net.majorkernelpanic.streaming.video.VideoQuality;
 
 import com.azeesoft.rccardriver.tools.screen.ScreenManager;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
 
     public final static String ACTIVITY_INTENT_ACTION = "com.azeesoft.rccardriver.action.ACTIVITY_INTENT_ACTION";
     public final static String ACTIVITY_INTENT_EXTRA_NAME = "com.azeesoft.rccardriver.extra.ACTIVITY_INTENT_EXTRA_NAME";
+
+    private SurfaceView streamSurfaceView;
+    private Session libStreamSession;
+    private RtspServer rtspServer;
 
     private final BroadcastReceiver mainActivityBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -64,6 +80,57 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(ACTIVITY_INTENT_ACTION);
         LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
         bm.registerReceiver(mainActivityBroadcastReceiver, filter);
+
+        streamSurfaceView = (SurfaceView) findViewById(R.id.streamSurfaceView);
+
+        libStreamSession = SessionBuilder.getInstance()
+                .setCallback(new Session.Callback() {
+                    @Override
+                    public void onBitrateUpdate(long bitrate) {
+
+                    }
+
+                    @Override
+                    public void onSessionError(int reason, int streamType, Exception e) {
+
+                    }
+
+                    @Override
+                    public void onPreviewStarted() {
+
+                    }
+
+                    @Override
+                    public void onSessionConfigured() {
+                        libStreamSession.start();
+                    }
+
+                    @Override
+                    public void onSessionStarted() {
+
+                    }
+
+                    @Override
+                    public void onSessionStopped() {
+                        libStreamSession.stop();
+                    }
+                })
+                .setSurfaceView(streamSurfaceView)
+                .setCamera(Camera.CameraInfo.CAMERA_FACING_FRONT)
+                .setPreviewOrientation(0)
+                .setContext(this)
+                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
+                .setAudioQuality(new AudioQuality(16000, 32000))
+                .setVideoEncoder(SessionBuilder.VIDEO_H264)
+                .setVideoQuality(new VideoQuality(320, 240, 15, 300000))
+                .build();
+
+     /*   libStreamSession.startPreview();
+        try {
+            libStreamSession.syncStart();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
     }
 
     @Override
@@ -108,6 +175,37 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
         bm.unregisterReceiver(mainActivityBroadcastReceiver);
         super.onDestroy();
+    }
+
+
+    public void startStreamServer(View v){
+        rtspServer = new RtspServer();
+        rtspServer.addCallbackListener(new RtspServer.CallbackListener() {
+            @Override
+            public void onError(RtspServer server, Exception e, int error) {
+
+            }
+
+            @Override
+            public void onMessage(RtspServer server, int message) {
+                if (message == RtspServer.MESSAGE_STREAMING_STARTED){
+//                    Toast.makeText(MainActivity.this, "Streaming Started", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+        rtspServer.start();
+
+//        startService(new Intent(this, RtspServer.class));
+
+        Toast.makeText(this, "Stream Session started!",Toast.LENGTH_LONG).show();
+    }
+
+    public void stopStreamServer(View v){
+        if(libStreamSession.isStreaming()){
+            libStreamSession.stop();
+        }
+
+        rtspServer.stop();
     }
 
 
