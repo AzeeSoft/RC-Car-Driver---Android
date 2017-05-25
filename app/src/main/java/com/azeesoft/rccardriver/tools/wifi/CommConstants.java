@@ -13,10 +13,12 @@ public class CommConstants {
     public enum RESPONSE_DATA_FLAGS_SUCCESS {AZEE_IP_HANDSHAKE}
     public enum RESPONSE_DATA_FLAGS_FAILURE {MAX_CONN_REACHED, NON_JSON_DATA}
 
-    public final static String RESPONSE_NAME_SUCCESS = "success";
-    public final static String RESPONSE_NAME_FLAGS_ARRAY = "flags_array";
-    public final static String RESPONSE_NAME_NON_JSON_DATA = "non_json_data";
-    public final static String RESPONSE_NAME_MESSAGE = "message";
+    public final static String NAME_SUCCESS = "success";
+    public final static String NAME_SERVER_REQUEST_ID = "server_request_id";
+    public final static String NAME_CLIENT_REQUEST_ID = "client_request_id";
+    public final static String NAME_FLAGS_ARRAY = "flags_array";
+    public final static String NAME_NON_JSON_DATA = "non_json_data";
+    public final static String NAME_MESSAGE = "message";
 
 
     /*
@@ -29,10 +31,15 @@ public class CommConstants {
     * Data sent from Client
     * */
 
-    public final static String RESPONSE_NAME_ARDUINO_BLUETOOTH_DATA = "arduino_bluetooth_data";
-    public final static String RESPONSE_NAME_CONNECT_TO_RC_CAR = "connect_to_rc_car";
-    public final static String RESPONSE_NAME_DISCONNECT_FROM_RC_CAR = "disconnect_from_rc_car";
-    public final static String RESPONSE_NAME_RESET_WIFI_CONNECTIONS = "reset_wifi_connections";
-    public final static String RESPONSE_NAME_START_WIFI_SERVER = "start_wifi_server";
+    public final static String REQUEST_NAME_ARDUINO_BLUETOOTH_DATA = "arduino_bluetooth_data";
+    public final static String REQUEST_NAME_CONNECT_TO_RC_CAR = "connect_to_rc_car";
+    public final static String REQUEST_NAME_DISCONNECT_FROM_RC_CAR = "disconnect_from_rc_car";
+    public final static String REQUEST_NAME_RESET_WIFI_CONNECTIONS = "reset_wifi_connections";
+    public final static String REQUEST_NAME_START_WIFI_SERVER = "start_wifi_server";
+
+//    NEED RESPONSE
+//    =============
+    public final static String REQUEST_NAME_START_RTSP_SERVER = "start_rtsp_server";
+    public final static String REQUEST_NAME_STOP_RTSP_SERVER = "stop_rtsp_server";
 
 }

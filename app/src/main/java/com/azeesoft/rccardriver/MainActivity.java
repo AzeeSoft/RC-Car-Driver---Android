@@ -40,10 +40,6 @@ public class MainActivity extends AppCompatActivity {
     public final static String ACTIVITY_INTENT_ACTION = "com.azeesoft.rccardriver.action.ACTIVITY_INTENT_ACTION";
     public final static String ACTIVITY_INTENT_EXTRA_NAME = "com.azeesoft.rccardriver.extra.ACTIVITY_INTENT_EXTRA_NAME";
 
-    private SurfaceView streamSurfaceView;
-    private Session libStreamSession;
-    private RtspServer rtspServer;
-
     private final BroadcastReceiver mainActivityBroadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -81,56 +77,6 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
         bm.registerReceiver(mainActivityBroadcastReceiver, filter);
 
-        streamSurfaceView = (SurfaceView) findViewById(R.id.streamSurfaceView);
-
-        libStreamSession = SessionBuilder.getInstance()
-                .setCallback(new Session.Callback() {
-                    @Override
-                    public void onBitrateUpdate(long bitrate) {
-
-                    }
-
-                    @Override
-                    public void onSessionError(int reason, int streamType, Exception e) {
-
-                    }
-
-                    @Override
-                    public void onPreviewStarted() {
-
-                    }
-
-                    @Override
-                    public void onSessionConfigured() {
-                        libStreamSession.start();
-                    }
-
-                    @Override
-                    public void onSessionStarted() {
-
-                    }
-
-                    @Override
-                    public void onSessionStopped() {
-                        libStreamSession.stop();
-                    }
-                })
-                .setSurfaceView(streamSurfaceView)
-                .setCamera(Camera.CameraInfo.CAMERA_FACING_FRONT)
-                .setPreviewOrientation(0)
-                .setContext(this)
-                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
-                .setAudioQuality(new AudioQuality(16000, 32000))
-                .setVideoEncoder(SessionBuilder.VIDEO_H264)
-                .setVideoQuality(new VideoQuality(320, 240, 15, 300000))
-                .build();
-
-     /*   libStreamSession.startPreview();
-        try {
-            libStreamSession.syncStart();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
     }
 
     @Override
@@ -178,37 +124,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void startStreamServer(View v){
-        rtspServer = new RtspServer();
-        rtspServer.addCallbackListener(new RtspServer.CallbackListener() {
-            @Override
-            public void onError(RtspServer server, Exception e, int error) {
-
-            }
-
-            @Override
-            public void onMessage(RtspServer server, int message) {
-                if (message == RtspServer.MESSAGE_STREAMING_STARTED){
-//                    Toast.makeText(MainActivity.this, "Streaming Started", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-        rtspServer.start();
-
-//        startService(new Intent(this, RtspServer.class));
-
-        Toast.makeText(this, "Stream Session started!",Toast.LENGTH_LONG).show();
-    }
-
-    public void stopStreamServer(View v){
-        if(libStreamSession.isStreaming()){
-            libStreamSession.stop();
-        }
-
-        rtspServer.stop();
-    }
-
-
     public void screenOff(View v) {
         Log.d("Screen", "Turning off...");
         ScreenManager.turnScreenOff(this);
@@ -240,5 +155,14 @@ public class MainActivity extends AppCompatActivity {
 
     public void startWifiServer(View v){
         sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.START_WIFI_SERVER);
+    }
+
+    public void startStreamServer(View v){
+        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.START_RTSP_SERVER);
+
+    }
+
+    public void stopStreamServer(View v){
+        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.STOP_RTSP_SERVER);
     }
 }

@@ -22,15 +22,15 @@ public class RCBluetoothMaster {
 
     private static final UUID BTMODULEUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-    BluetoothSocket bSocket;
-    BufferedReader bReader;
-    BufferedWriter bWriter;
+    BluetoothSocket bSocket=null;
+    BufferedReader bReader=null;
+    BufferedWriter bWriter=null;
 
     public RCBluetoothMaster(){
 
     }
 
-    public void connectToRCCar(){
+    public boolean connectToRCCar(){
         closeAllConnections();
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -57,7 +57,7 @@ public class RCBluetoothMaster {
             }
         }
 
-        if(bSocket!=null){
+        if(bSocket!=null && bSocket.isConnected()){
             try {
                 OutputStream outputStream = bSocket.getOutputStream();
                 InputStream inStream = bSocket.getInputStream();
@@ -65,10 +65,12 @@ public class RCBluetoothMaster {
                 bReader = new BufferedReader(new InputStreamReader(inStream));
                 bWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
                 sendData("AZEE_HANDSHAKE");
+                return true;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        return false;
     }
 
     public void sendData(String msg){
