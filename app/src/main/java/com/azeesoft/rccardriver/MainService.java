@@ -256,25 +256,13 @@ public class MainService extends Service {
             e.printStackTrace();
         }
     }
-
-    /**
-     * @param text The string of text to be spoken. No longer than
-     *            {@link #getMaxSpeechInputLength()} characters.
-     * @param queueMode The queuing strategy to use, {@link #QUEUE_ADD} or {@link #QUEUE_FLUSH}.
-     *
-     */
+    
     public static void speakStatic(String s, int queueMode){
         if(thisService!=null){
             thisService.speak(s, queueMode);
         }
     }
 
-    /**
-     * @param text The string of text to be spoken. No longer than
-     *            {@link #getMaxSpeechInputLength()} characters.
-     * @param queueMode The queuing strategy to use, {@link #QUEUE_ADD} or {@link #QUEUE_FLUSH}.
-     *
-     */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void speak(String s, int queueMode){
         if(textToSpeech!=null){
