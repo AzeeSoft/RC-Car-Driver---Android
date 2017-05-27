@@ -8,28 +8,20 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.widget.Toast;
+import android.view.SurfaceView;
 
 import com.azeesoft.rccardriver.tools.bluetooth.RCBluetoothMaster;
+import com.azeesoft.rccardriver.tools.hls.CameraStreamer;
 import com.azeesoft.rccardriver.tools.screen.ScreenOnOffReceiver;
 import com.azeesoft.rccardriver.tools.wifi.CommConstants;
 import com.azeesoft.rccardriver.tools.wifi.IPServer;
 
-import net.majorkernelpanic.streaming.Session;
-import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.audio.AudioQuality;
-import net.majorkernelpanic.streaming.gl.SurfaceView;
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
-import net.majorkernelpanic.streaming.video.VideoQuality;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +31,7 @@ import java.util.Locale;
 public class MainService extends Service {
 
 
-    public enum SERVICE_INTENT_EXTRAS {RESET_CONNECTIONS, CONNECT_TO_RC_CAR, START_WIFI_SERVER, START_RTSP_SERVER, STOP_RTSP_SERVER, NEW_CLIENT_CONNECTED}
+    public enum SERVICE_INTENT_EXTRAS {RESET_CONNECTIONS, CONNECT_TO_RC_CAR, START_WIFI_SERVER, START_HLS_SERVER, STOP_HLS_SERVER, NEW_CLIENT_CONNECTED}
 
     public final static String SELF_NAME = "Zerone";
 
@@ -56,12 +48,9 @@ public class MainService extends Service {
 
     private static MainService thisService;
 
-
-    private SurfaceView streamSurfaceView;
-    private Session libStreamSession;
-    private RtspServer rtspServer;
-
     private TextToSpeech textToSpeech;
+
+    CameraStreamer cameraStreamer;
 
     public MainService() {
         super();
@@ -95,51 +84,6 @@ public class MainService extends Service {
         initiateWifiServer();
         bluetoothMaster = new RCBluetoothMaster();
 
-        streamSurfaceView = (SurfaceView) LayoutInflater.from(this).inflate(R.layout.stream_surface_view, null);
-
-        libStreamSession = SessionBuilder.getInstance()
-                .setCallback(new Session.Callback() {
-                    @Override
-                    public void onBitrateUpdate(long bitrate) {
-
-                    }
-
-                    @Override
-                    public void onSessionError(int reason, int streamType, Exception e) {
-
-                    }
-
-                    @Override
-                    public void onPreviewStarted() {
-
-                    }
-
-                    @Override
-                    public void onSessionConfigured() {
-                        libStreamSession.start();
-                    }
-
-                    @Override
-                    public void onSessionStarted() {
-
-                    }
-
-                    @Override
-                    public void onSessionStopped() {
-                        libStreamSession.stop();
-                    }
-                })
-                .setSurfaceView(streamSurfaceView)
-                .setCamera(Camera.CameraInfo.CAMERA_FACING_FRONT)
-                .setPreviewOrientation(180)
-                .setContext(this)
-                .setAudioEncoder(SessionBuilder.AUDIO_NONE)
-                .setAudioQuality(new AudioQuality(16000, 32000))
-                .setVideoEncoder(SessionBuilder.VIDEO_H264)
-                .setVideoQuality(new VideoQuality(320, 240, 15, 300000))
-                .build();
-
-
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
@@ -152,6 +96,8 @@ public class MainService extends Service {
                 }
             }
         });
+
+        cameraStreamer = new CameraStreamer(Camera.CameraInfo.CAMERA_FACING_FRONT,false, 8080, 0, 60, new SurfaceView(this).getHolder());
     }
 
     @Override
@@ -181,11 +127,11 @@ public class MainService extends Service {
                     case START_WIFI_SERVER:
                         startWifiServer();
                         break;
-                    case START_RTSP_SERVER:
-                        startRTSPStreamServer();
+                    case START_HLS_SERVER:
+                        startHLSServer();
                         break;
-                    case STOP_RTSP_SERVER:
-                        stopRTSPStreamServer();
+                    case STOP_HLS_SERVER:
+                        stopHLSServer();
                         break;
                     case NEW_CLIENT_CONNECTED:
                         onNewClientConnected();
@@ -236,8 +182,8 @@ public class MainService extends Service {
                 if (jsonObject.has(CommConstants.REQUEST_NAME_START_WIFI_SERVER)) {
                     startWifiServer();
                 }
-                if (jsonObject.has(CommConstants.REQUEST_NAME_START_RTSP_SERVER)) {
-                    startRTSPStreamServer();
+                if (jsonObject.has(CommConstants.REQUEST_NAME_START_HLS_SERVER)) {
+                    startHLSServer();
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
@@ -248,15 +194,15 @@ public class MainService extends Service {
                     responseJSONObject.put(CommConstants.NAME_CLIENT_REQUEST_ID, jsonObject.getInt(CommConstants.NAME_CLIENT_REQUEST_ID));
                     ipServer.sendDataToClient(clientConnection, responseJSONObject);
                 }
-                if (jsonObject.has(CommConstants.REQUEST_NAME_STOP_RTSP_SERVER)) {
-                    stopRTSPStreamServer();
+                if (jsonObject.has(CommConstants.REQUEST_NAME_STOP_HLS_SERVER)) {
+                    stopHLSServer();
                 }
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-    
+
     public static void speakStatic(String s, int queueMode){
         if(thisService!=null){
             thisService.speak(s, queueMode);
@@ -315,43 +261,22 @@ public class MainService extends Service {
         speak("Restarting Wifi Server!", TextToSpeech.QUEUE_ADD);
     }
 
-    public void startRTSPStreamServer() {
-        rtspServer = new RtspServer();
-        rtspServer.addCallbackListener(new RtspServer.CallbackListener() {
-            @Override
-            public void onError(RtspServer server, Exception e, int error) {
-
-            }
-
-            @Override
-            public void onMessage(RtspServer server, int message) {
-                Log.d(LOG_TAG, "onMessage: "+message);
-                if (message == RtspServer.MESSAGE_STREAMING_STARTED) {
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(MainService.this, "Streaming Started", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            }
-        });
-        rtspServer.start();
-
-        speak("Starting Live Stream", TextToSpeech.QUEUE_ADD);
-//        startService(new Intent(this, RtspServer.class));
-
-//        Toast.makeText(this, "Stream Session started!",Toast.LENGTH_LONG).show();
+    public void startHLSServer(){
+        try {
+            cameraStreamer.start();
+            speak("Starting live stream!", TextToSpeech.QUEUE_ADD);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    public void stopRTSPStreamServer() {
-        if (libStreamSession.isStreaming()) {
-            libStreamSession.stop();
+    public void stopHLSServer(){
+        try {
+            cameraStreamer.stop();
+            speak("Stopping live stream!", TextToSpeech.QUEUE_ADD);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        rtspServer.stop();
-        speak("Stopping Live Stream", TextToSpeech.QUEUE_ADD);
     }
 
     public void onNewClientConnected(){

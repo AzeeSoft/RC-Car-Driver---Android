@@ -1,37 +1,21 @@
 package com.azeesoft.rccardriver;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.net.rtp.RtpStream;
-import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Toast;
-import net.majorkernelpanic.streaming.Session;
-import net.majorkernelpanic.streaming.SessionBuilder;
-import net.majorkernelpanic.streaming.audio.AudioQuality;
-import net.majorkernelpanic.streaming.gl.SurfaceView;
-import net.majorkernelpanic.streaming.rtsp.RtspServer;
-import net.majorkernelpanic.streaming.video.VideoQuality;
 
 import com.azeesoft.rccardriver.tools.screen.ScreenManager;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -158,11 +142,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startStreamServer(View v){
-        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.START_RTSP_SERVER);
+        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.START_HLS_SERVER);
 
     }
 
     public void stopStreamServer(View v){
-        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.STOP_RTSP_SERVER);
+        sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.STOP_HLS_SERVER);
     }
 }

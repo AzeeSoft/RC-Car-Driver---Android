@@ -39,7 +39,7 @@ public class CommConstants {
 
 //    NEED RESPONSE
 //    =============
-    public final static String REQUEST_NAME_START_RTSP_SERVER = "start_rtsp_server";
-    public final static String REQUEST_NAME_STOP_RTSP_SERVER = "stop_rtsp_server";
+    public final static String REQUEST_NAME_START_HLS_SERVER = "start_rtsp_server";
+    public final static String REQUEST_NAME_STOP_HLS_SERVER = "stop_rtsp_server";
 
 }
