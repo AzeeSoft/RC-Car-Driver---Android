@@ -91,6 +91,7 @@
                     android:text="Stop HLS Server" />
 
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

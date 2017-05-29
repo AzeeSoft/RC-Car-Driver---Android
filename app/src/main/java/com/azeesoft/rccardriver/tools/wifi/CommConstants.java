@@ -20,6 +20,9 @@ public class CommConstants {
     public final static String NAME_NON_JSON_DATA = "non_json_data";
     public final static String NAME_MESSAGE = "message";
 
+    public final static String NAME_SPEECH_DATA = "speech_data";
+
+
 
     /*
     * Data sent from Server
@@ -36,6 +39,7 @@ public class CommConstants {
     public final static String REQUEST_NAME_DISCONNECT_FROM_RC_CAR = "disconnect_from_rc_car";
     public final static String REQUEST_NAME_RESET_WIFI_CONNECTIONS = "reset_wifi_connections";
     public final static String REQUEST_NAME_START_WIFI_SERVER = "start_wifi_server";
+    public final static String REQUEST_NAME_SPEAK = "speak";
 
 //    NEED RESPONSE
 //    =============

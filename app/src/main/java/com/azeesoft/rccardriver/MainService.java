@@ -21,23 +21,22 @@ import com.azeesoft.rccardriver.tools.hls.CameraStreamer;
 import com.azeesoft.rccardriver.tools.screen.ScreenOnOffReceiver;
 import com.azeesoft.rccardriver.tools.wifi.CommConstants;
 import com.azeesoft.rccardriver.tools.wifi.IPServer;
-
+import com.azeesoft.rccardriver.tools.wifi.MicStreamer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InvalidObjectException;
 import java.util.Locale;
 
 public class MainService extends Service {
 
-
-    public enum SERVICE_INTENT_EXTRAS {RESET_CONNECTIONS, CONNECT_TO_RC_CAR, START_WIFI_SERVER, START_HLS_SERVER, STOP_HLS_SERVER, NEW_CLIENT_CONNECTED}
+    public enum SERVICE_INTENT_EXTRAS {RESET_CONNECTIONS, CONNECT_TO_RC_CAR, START_WIFI_SERVER, START_HLS_SERVER, STOP_HLS_SERVER}
 
     public final static String SELF_NAME = "Zerone";
 
     public final static String SERVICE_INTENT_ACTION = "com.azeesoft.rccardriver.action.SERVICE_INTENT_ACTION";
     public final static String SERVICE_INTENT_EXTRA_NAME = "com.azeesoft.rccardriver.extra.SERVICE_INTENT_EXTRA_NAME";
-
 
     private static String LOG_TAG = "MainService";
 
@@ -51,6 +50,7 @@ public class MainService extends Service {
     private TextToSpeech textToSpeech;
 
     CameraStreamer cameraStreamer;
+    MicStreamer micStreamer;
 
     public MainService() {
         super();
@@ -92,12 +92,13 @@ public class MainService extends Service {
                     Log.d(LOG_TAG, "TTS Initialized!");
                     textToSpeech.setLanguage(Locale.US);
                     textToSpeech.setSpeechRate(1.0f);
-                    speak(SELF_NAME + " at your service sir.", TextToSpeech.QUEUE_FLUSH);
+                    speak("Initializing System... You are ready to connect!", TextToSpeech.QUEUE_FLUSH);
                 }
             }
         });
 
         cameraStreamer = new CameraStreamer(Camera.CameraInfo.CAMERA_FACING_FRONT,false, 8080, 0, 60, new SurfaceView(this).getHolder());
+        micStreamer = MicStreamer.getMicStreamer("");
     }
 
     @Override
@@ -129,12 +130,11 @@ public class MainService extends Service {
                         break;
                     case START_HLS_SERVER:
                         startHLSServer();
+                        startMicStream();
                         break;
                     case STOP_HLS_SERVER:
                         stopHLSServer();
-                        break;
-                    case NEW_CLIENT_CONNECTED:
-                        onNewClientConnected();
+                        stopMicStream();
                         break;
                     default:
 
@@ -151,7 +151,15 @@ public class MainService extends Service {
 
     private void initiateWifiServer() {
         ipServer = IPServer.getIPServer(IPServer.DEFAULT_PORT, 1);
-        ipServer.startServer(new IPServer.OnClientDataReceivedListener() {
+        ipServer.startServer(new IPServer.OnClientConnectedListener() {
+            @Override
+            public void onClientConnected(IPServer.ClientConnection clientConnection) {
+
+                micStreamer.setDestIP(clientConnection.getClientSocket().getInetAddress().getHostAddress());
+
+                onNewClientConnected();
+            }
+        }, new IPServer.OnClientDataReceivedListener() {
             @Override
             public void onClientDataReceived(IPServer.ClientConnection clientConnection, JSONObject jsonObject) {
 //                Toast.makeText(MainService.this, "Data Received: " + jsonObject, Toast.LENGTH_LONG).show();
@@ -184,6 +192,7 @@ public class MainService extends Service {
                 }
                 if (jsonObject.has(CommConstants.REQUEST_NAME_START_HLS_SERVER)) {
                     startHLSServer();
+                    startMicStream();
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
@@ -196,6 +205,13 @@ public class MainService extends Service {
                 }
                 if (jsonObject.has(CommConstants.REQUEST_NAME_STOP_HLS_SERVER)) {
                     stopHLSServer();
+                    stopMicStream();
+                }
+                if (jsonObject.has(CommConstants.REQUEST_NAME_SPEAK)) {
+                    if(jsonObject.getBoolean(CommConstants.NAME_SUCCESS)){
+                        String text = jsonObject.getString(CommConstants.NAME_SPEECH_DATA);
+                        speak(text, TextToSpeech.QUEUE_ADD);
+                    }
                 }
             }
         } catch (JSONException e) {
@@ -279,7 +295,27 @@ public class MainService extends Service {
         }
     }
 
+    public void startMicStream(){
+        try {
+            micStreamer.startStreaming();
+//            speak("Mic stream started!", TextToSpeech.QUEUE_ADD);
+        } catch (InvalidObjectException e) {
+            e.printStackTrace();
+            speak("Error starting the Mic Stream. Invalid IP!", TextToSpeech.QUEUE_ADD);
+        }
+    }
+
+    public void stopMicStream(){
+        try {
+            micStreamer.stopStreaming();
+//            speak("Mic stream stopped!", TextToSpeech.QUEUE_ADD);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void onNewClientConnected(){
-        speak("New Device Connected", TextToSpeech.QUEUE_ADD);
+        speak("New device connected", TextToSpeech.QUEUE_ADD);
+        speak(MainService.SELF_NAME+" at your service!", TextToSpeech.QUEUE_ADD);
     }
 }

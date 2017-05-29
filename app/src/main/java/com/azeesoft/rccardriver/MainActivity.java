@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void startStreamServer(View v){
         sendSimpleIntentToService(MainService.SERVICE_INTENT_EXTRAS.START_HLS_SERVER);
-
     }
 
     public void stopStreamServer(View v){

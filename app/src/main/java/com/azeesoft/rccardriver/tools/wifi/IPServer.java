@@ -40,6 +40,7 @@ public class IPServer {
     private ArrayList<ClientConnection> clientConnections = new ArrayList<>();
     private Handler updateOnUIHandler;
     private OnClientDataReceivedListener onClientDataReceivedListener;
+    private OnClientConnectedListener onClientConnectedListener;
 
     private static IPServer thisServer;
 
@@ -57,7 +58,8 @@ public class IPServer {
         updateOnUIHandler = new Handler();
     }
 
-    public boolean startServer(OnClientDataReceivedListener onClientDataReceivedListener) {
+    public boolean startServer(OnClientConnectedListener onClientConnectedListener, OnClientDataReceivedListener onClientDataReceivedListener) {
+        setOnClientConnectedListener(onClientConnectedListener);
         setOnClientDataReceivedListener(onClientDataReceivedListener);
         return startServer();
     }
@@ -89,6 +91,10 @@ public class IPServer {
 
     public void setOnClientDataReceivedListener(OnClientDataReceivedListener onClientDataReceivedListener) {
         this.onClientDataReceivedListener = onClientDataReceivedListener;
+    }
+
+    public void setOnClientConnectedListener(OnClientConnectedListener onClientConnectedListener) {
+        this.onClientConnectedListener = onClientConnectedListener;
     }
 
     public void sendDataToAll(JSONObject data) {
@@ -143,7 +149,9 @@ public class IPServer {
                         Log.d(LOG_TAG, "Adding client connection");
                         clientConnections.add(clientConnection);
 
-                        MainService.speakStatic("New Connection Received", TextToSpeech.QUEUE_ADD);
+                        if(onClientConnectedListener!=null){
+                            onClientConnectedListener.onClientConnected(clientConnection);
+                        }
                     } else {
                         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(incomingSocket.getOutputStream()));
 
@@ -346,6 +354,10 @@ public class IPServer {
                 onClientDataReceivedListener.onClientDataReceived(clientConnection, jsonObject);
             }
         }
+    }
+
+    public interface OnClientConnectedListener{
+        void onClientConnected(ClientConnection clientConnection);
     }
 
     public interface OnClientDataReceivedListener {
