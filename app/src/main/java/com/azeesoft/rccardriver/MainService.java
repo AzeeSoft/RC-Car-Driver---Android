@@ -97,7 +97,7 @@ public class MainService extends Service {
             }
         });
 
-        cameraStreamer = new CameraStreamer(Camera.CameraInfo.CAMERA_FACING_FRONT,false, 8080, 0, 60, new SurfaceView(this).getHolder());
+        cameraStreamer = new CameraStreamer(Camera.CameraInfo.CAMERA_FACING_BACK,false, 8080, 1, 60, new SurfaceView(this).getHolder());
         micStreamer = MicStreamer.getMicStreamer("");
     }
 
@@ -155,7 +155,7 @@ public class MainService extends Service {
             @Override
             public void onClientConnected(IPServer.ClientConnection clientConnection) {
 
-                micStreamer.setDestIP(clientConnection.getClientSocket().getInetAddress().getHostAddress());
+//                micStreamer.setDestIP(clientConnection.getClientSocket().getInetAddress().getHostAddress());
 
                 onNewClientConnected();
             }
@@ -192,6 +192,7 @@ public class MainService extends Service {
                 }
                 if (jsonObject.has(CommConstants.REQUEST_NAME_START_HLS_SERVER)) {
                     startHLSServer();
+                    micStreamer.setDestIP(clientConnection.getClientSocket().getInetAddress().getHostAddress());
                     startMicStream();
                     try {
                         Thread.sleep(2000);

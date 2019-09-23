@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.ScrollView;
 import android.widget.Toast;
 
@@ -23,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
 
     public final static String ACTIVITY_INTENT_ACTION = "com.azeesoft.rccardriver.action.ACTIVITY_INTENT_ACTION";
     public final static String ACTIVITY_INTENT_EXTRA_NAME = "com.azeesoft.rccardriver.extra.ACTIVITY_INTENT_EXTRA_NAME";
+
+    private WebView webView;
 
     private final BroadcastReceiver mainActivityBroadcastReceiver = new BroadcastReceiver() {
         @Override
@@ -50,17 +54,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        startService(new Intent(this, MainService.class));
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTIVITY_INTENT_ACTION);
-        LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
-        bm.registerReceiver(mainActivityBroadcastReceiver, filter);
-
+        prepareService();
+        prepareBroadcastRecceiver();
+        prepareUI();
     }
 
     @Override
@@ -93,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -107,6 +106,25 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
+    private void prepareService(){
+        startService(new Intent(this, MainService.class));
+    }
+
+    private void prepareBroadcastRecceiver(){
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTIVITY_INTENT_ACTION);
+        LocalBroadcastManager bm = LocalBroadcastManager.getInstance(this);
+        bm.registerReceiver(mainActivityBroadcastReceiver, filter);
+    }
+
+    private void prepareUI(){
+        webView = (WebView) findViewById(R.id.webView);
+        WebChromeClient webChromeClient = new WebChromeClient(){
+            //TODO: Customize the WebChromeClient
+
+        };
+        webView.setWebChromeClient(webChromeClient);
+    }
 
     public void screenOff(View v) {
         Log.d("Screen", "Turning off...");

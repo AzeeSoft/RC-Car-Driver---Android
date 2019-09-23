@@ -19,10 +19,17 @@
             android:layout_alignParentRight="true"
             android:clickable="true"
             android:onClick="showHideSettings"
+            app:backgroundTint="#0fff"
             app:fabSize="mini"
             app:srcCompat="@android:drawable/ic_menu_manage" />
 
     </RelativeLayout>
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar" />
 
     <ScrollView
         android:id="@+id/settingsScrollView"
